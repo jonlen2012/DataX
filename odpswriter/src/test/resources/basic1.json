@@ -11,7 +11,7 @@
           "parameter": {
             "project": "chinan_test",
             "table": "odps_write_test00_no_partition",
-            "column": ["*"],
+            "column": ["id","name"],
             "accessId": "blb1vBsJo7LXv1x7",
             "accessKey": "dvyve9w0kXRFza9XSOmRJ3wrpk1kmm",
             "truncate": "true",
