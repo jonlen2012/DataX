@@ -7,7 +7,7 @@
       {
         "reader": {},
         "writer": {
-          "name": "odpswriter",
+          "name": "temp_odpswriter",
           "parameter": {
             "project": "chinan_test",
             "table": "odps_write_test00_no_partition",
