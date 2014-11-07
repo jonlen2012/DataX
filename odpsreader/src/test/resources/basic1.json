@@ -1,35 +1,40 @@
 {
-  "job": {
-      "setting": {
-          "speed": {
-              "channel": 5
-          }
-      },
-    "content": [
-      {
-        "reader": {
-          "name": "odpsreader",
-          "parameter": {
-            "project": "chinan_test",
-            "table": "sale_detail",
-            "partition": [
-              "*"
-            ],
-            "column": [
-              "customer_id",
-              "shop_name",
-              "'hello-alibaba~!@#$%^&*()_+'"
-            ],
-            "accessId": "blb1vBsJo7LXv1x7",
-            "accessKey": "dvyve9w0kXRFza9XSOmRJ3wrpk1kmm",
-            "splitMode": "parititon",
-            "odpsServer": "http://service.odpsstg.aliyun-inc.com/stgnew/",
-            "tunnelServer": "http://tunnel.odpsstg.aliyun-inc.com",
-            "accountType": "aliyun"
-          }
+    "job": {
+        "setting": {
+            "speed": {
+                "channel": 5
+            }
         },
-        "writer": {}
-      }
-    ]
-  }
+        "content": [
+            {
+                "reader": {
+                    "name": "odpsreader",
+                    "parameter": {
+                        "project": "chinan_test",
+                        "table": "sale_detail",
+                        "partition": [
+                            "*"
+                        ],
+                        "column": [
+                            "customer_id",
+                            "shop_name",
+                            "'hello-alibaba~!@#$%^&*()_+'"
+                        ],
+                        "accessId": "blb1vBsJo7LXv1x7",
+                        "accessKey": "dvyve9w0kXRFza9XSOmRJ3wrpk1kmm",
+                        "splitMode": "parititon",
+                        "odpsServer": "http://service.odpsstg.aliyun-inc.com/stgnew/",
+                        "tunnelServer": "http://tunnel.odpsstg.aliyun-inc.com",
+                        "accountType": "aliyun"
+                    }
+                },
+                "writer": {
+                    "name": "streamwriter",
+                    "parameter": {
+                        "print": true
+                    }
+                }
+            }
+        ]
+    }
 }
