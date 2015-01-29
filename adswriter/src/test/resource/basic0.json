@@ -1,0 +1,47 @@
+{
+    "job": {
+        "setting": {
+            "speed": {
+                "byte": 1048576
+            }
+        },
+        "content": [
+            {
+                "reader": {
+                    "name": "streamreader",
+                    "parameter": {
+                        "column": [
+                            {
+                                "value": "DataX",
+                                "type": "string"
+                            },
+                            {
+                                "value": "test",
+                                "type": "bytes"
+                            }
+                        ],
+                        "sliceRecordCount": 100000
+                    }
+                },
+                "writer": {
+                    "name": "adswriter",
+                    "parameter": {
+                        "accessId": "",
+                        "accessKey": "",
+                        "partition": "",
+                        "overWrite": true,
+                        "writeMode": "load",
+                        "connection": [
+                            {
+                                "jdbcUrl": "jdbc:mysql://127.0.0.1:3306/datax",
+                                "table": [
+                                    "test"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}
