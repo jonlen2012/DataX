@@ -1,0 +1,53 @@
+{
+    "job": {
+        "setting": {
+            "speed": {
+                "byte": 1048576
+            }
+        },
+        "content": [
+            {
+                "reader": {
+                    "name": "streamreader",
+                    "parameter": {
+                        "column": [
+                            {
+                                "value": "DataX",
+                                "type": "string"
+                            },
+                            {
+                                "value": "test",
+                                "type": "bytes"
+                            }
+                        ],
+                        "sliceRecordCount": 100000
+                    }
+                },
+                "writer": {
+                    "name": "adswriter",
+                    "parameter": {
+                        "lifeCycle":2,
+                        "username": "garuda",
+                        "password": "123456",
+                        "schema":"schema",
+                        "truncate": "true",
+                        "adsUrl":"adsUrl",
+                        "accountType": "aliyun",
+                        "partition": "",
+                        "overWrite": true,
+                        "writeMode": "load",
+                        "adsTable":"table",
+                        "connection": [
+                            {
+                                "jdbcUrl": "jdbc:mysql://10.125.11.160:9999/db_name",
+                                "table": [
+                                    "test"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}
