@@ -1,0 +1,60 @@
+{
+    "job": {
+        "setting": {
+            "speed": {
+                "channel": 5
+            }
+        },
+        "preHandler": {
+            "pluginType": "writer",
+            "name": "HBaseBulkWriter2"
+        },
+        "postHandler": {
+            "pluginType": "writer",
+            "name": "HBaseBulkWriter2"
+        },
+        "content": [
+            {
+                "reader": {
+                    "name": "odpsreader",
+                    "parameter": {
+                        "project": "chinan_test",
+                        "table": "sale_detail",
+                        "partition": [
+                            "sale_date=201310,region='hangzhou'",
+                            "sale_date=201311,region='hangzhou'",
+                            "sale_date=201310,region='shanghai'",
+                            "sale_date=201311,region='shanghai'"
+                        ],
+                        "column": [
+                            "id",
+                            "name",
+                            "age",
+                            "birthday",
+                            "gender"
+                        ],
+                        "accessId": "blb1vBsJo7LXv1x7",
+                        "accessKey": "dvyve9w0kXRFza9XSOmRJ3wrpk1kmm",
+                        "splitMode": "record",
+                        "odpsServer": "http://service.odpsstg.aliyun-inc.com/stgnew/",
+                        "tunnelServer": "http://tunnel.odpsstg.aliyun-inc.com",
+                        "accountType": "aliyun"
+                    }
+                },
+                "writer": {
+                    "name": "HBaseBulkWriter2",
+                    "parameter": {
+                        "origin": {
+                            "hbase_table": "test_hbase_table",
+                            "hbase_rowkey": "0|string",
+                            "hbase_column": "1|string|cf:name,2|int|cf:age,3|string|cf:birthday",
+                            "hbase_output": "test_hbase_output",
+                            "hbase_config": "test_hbase_config",
+                            "hdfs_config": "test_hdfs_config"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
