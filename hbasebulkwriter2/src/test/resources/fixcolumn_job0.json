@@ -7,11 +7,11 @@
         },
         "preHandler": {
             "pluginType": "writer",
-            "name": "HBaseBulkWriter2"
+            "pluginName": "hbasebulkwriter2"
         },
         "postHandler": {
             "pluginType": "writer",
-            "name": "HBaseBulkWriter2"
+            "pluginName": "hbasebulkwriter2"
         },
         "content": [
             {
@@ -42,7 +42,7 @@
                     }
                 },
                 "writer": {
-                    "name": "HBaseBulkWriter2",
+                    "name": "hbasebulkwriter2",
                     "parameter": {
                         "origin": {
                             "hbase_table": "test_hbase_table",
