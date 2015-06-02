@@ -46,7 +46,11 @@
                             "hbase_column": "string|cf:name,int|cf:age",
                             "hbase_output": "test_hbase_output",
                             "hbase_config": "test_hbase_config",
-                            "hdfs_config": "test_hdfs_config"
+                            "hdfs_config": "test_hdfs_config",
+                            "hbase_cluster_name":"test_hbase_cluster_name",
+                            "optional": {
+                                "null_mode": "EMPTY_BYTES"
+                            }
                         }
                     }
                 }
