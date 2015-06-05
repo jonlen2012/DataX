@@ -45,16 +45,16 @@
                     "name": "hbasebulkwriter2",
                     "parameter": {
                         "origin": {
-                            "hbase_table": "test_hbase_table",
-                            "hbase_rowkey": "0|string",
-                            "hbase_column": "1|string|cf:name,2|int|cf:age,3|string|cf:birthday",
-                            "hbase_output": "test_hbase_output",
-                            "hbase_config": "test_hbase_config",
-                            "hbase_cluster_name":"test_hbase_cluster_name",
-                            "hdfs_config": "test_hdfs_config",
-                            "optional": {
-                                "null_mode": "EMPTY_BYTES"
-                            }
+                            "hbaseTable": "test_hbase_table",
+                            "hbaseRowkey": "0|string",
+                            "hbaseColumn": "1|string|cf:name,2|int|cf:age,3|string|cf:birthday",
+                            "hbaseOutput": "test_hbase_output",
+                            "hbaseConfig": "test_hbase_config",
+                            "hbaseClusterName":"test_hbase_cluster_name",
+                            "hdfsConfig": "test_hdfs_config",
+                            "nullMode": "EMPTY_BYTES",
+                            "timeCol":2,
+                            "encoding":"utf-8"
                         }
                     }
                 }

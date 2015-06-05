@@ -27,7 +27,11 @@
                             "sale_date=201311,region='shanghai'"
                         ],
                         "column": [
-                            "rowkey", "cf_qual", "ts", "val"
+                            "id",
+                            "name",
+                            "age",
+                            "birthday",
+                            "gender"
                         ],
                         "accessId": "blb1vBsJo7LXv1x7",
                         "accessKey": "dvyve9w0kXRFza9XSOmRJ3wrpk1kmm",
@@ -42,12 +46,8 @@
                     "parameter": {
                         "origin": {
                             "hbaseTable": "test_hbase_table",
-                            "rowkeyType": "string",
-                            "hbaseColumn": "string|cf:name,int|cf:age",
-                            "hbaseOutput": "test_hbase_output",
-                            "hbaseConfig": "test_hbase_config",
-                            "hdfsConfig": "test_hdfs_config",
-                            "hbaseClusterName":"test_hbase_cluster_name",
+                            "hbaseRowkey": "0|string",
+                            "hbaseColumn": "1|string|cf:name,2|int|cf:age,3|string|cf:birthday",
                             "nullMode": "EMPTY_BYTES",
                             "timeCol":2,
                             "encoding":"utf-8",
