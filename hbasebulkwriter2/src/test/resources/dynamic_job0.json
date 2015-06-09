@@ -1,0 +1,70 @@
+{
+    "job": {
+        "setting": {
+            "speed": {
+                "channel": 5
+            }
+        },
+        "preHandler": {
+            "pluginType": "writer",
+            "pluginName": "hbasebulkwriter2"
+        },
+        "postHandler": {
+            "pluginType": "writer",
+            "pluginName": "hbasebulkwriter2"
+        },
+        "content": [
+            {
+                "reader": {
+                    "name": "odpsreader",
+                    "parameter": {
+                        "project": "chinan_test",
+                        "table": "sale_detail",
+                        "partition": [
+                            "sale_date=201310,region='hangzhou'",
+                            "sale_date=201311,region='hangzhou'",
+                            "sale_date=201310,region='shanghai'",
+                            "sale_date=201311,region='shanghai'"
+                        ],
+                        "column": [
+                            "rowkey", "cf_qual", "ts", "val"
+                        ],
+                        "accessId": "blb1vBsJo7LXv1x7",
+                        "accessKey": "dvyve9w0kXRFza9XSOmRJ3wrpk1kmm",
+                        "splitMode": "record",
+                        "odpsServer": "http://service.odpsstg.aliyun-inc.com/stgnew/",
+                        "tunnelServer": "http://tunnel.odpsstg.aliyun-inc.com",
+                        "accountType": "aliyun"
+                    }
+                },
+                "writer": {
+                    "name": "hbasebulkwriter2",
+                    "parameter": {
+                        "origin": {
+                            "hbaseTable": "test_hbase_table",
+                            "rowkeyType": "string",
+                            "hbaseColumn": "string|cf:name,int|cf:age",
+                            "hbaseOutput": "test_hbase_output",
+                            "hbaseConfig": "test_hbase_config",
+                            "hdfsConfig": "test_hdfs_config",
+                            "hbaseClusterName":"test_hbase_cluster_name",
+                            "nullMode": "EMPTY_BYTES",
+                            "timeCol":2,
+                            "encoding":"utf-8",
+                            "configuration": {
+                                "dfs.client.failover.proxy.provider.hdfscluster-perf": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+                                "dfs.ha.namenodes.hdfscluster-perf": "nn1,nn2",
+                                "dfs.nameservices": "hdfscluster-perf",
+                                "fs.defaultFS": "hdfs://hdfscluster-perf",
+                                "dfs.namenode.rpc-address.hdfscluster-perf.nn1": "10.101.88.59:8020",
+                                "dfs.namenode.rpc-address.hdfscluster-perf.nn2": "10.101.85.53:8020",
+                                "zookeeper.znode.parent": "/hbase-datax3",
+                                "hbase.zookeeper.quorum": "10.101.88.59,10.101.85.53,10.101.87.52"
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
