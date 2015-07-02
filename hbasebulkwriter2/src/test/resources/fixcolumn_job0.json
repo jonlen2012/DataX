@@ -1,0 +1,64 @@
+{
+    "job": {
+        "setting": {
+            "speed": {
+                "channel": 5
+            }
+        },
+        "preHandler": {
+            "pluginType": "writer",
+            "pluginName": "hbasebulkwriter2"
+        },
+        "postHandler": {
+            "pluginType": "writer",
+            "pluginName": "hbasebulkwriter2"
+        },
+        "content": [
+            {
+                "reader": {
+                    "name": "odpsreader",
+                    "parameter": {
+                        "project": "chinan_test",
+                        "table": "sale_detail",
+                        "partition": [
+                            "sale_date=201310,region='hangzhou'",
+                            "sale_date=201311,region='hangzhou'",
+                            "sale_date=201310,region='shanghai'",
+                            "sale_date=201311,region='shanghai'"
+                        ],
+                        "column": [
+                            "id",
+                            "name",
+                            "age",
+                            "birthday",
+                            "gender"
+                        ],
+                        "accessId": "blb1vBsJo7LXv1x7",
+                        "accessKey": "dvyve9w0kXRFza9XSOmRJ3wrpk1kmm",
+                        "splitMode": "record",
+                        "odpsServer": "http://service.odpsstg.aliyun-inc.com/stgnew/",
+                        "tunnelServer": "http://tunnel.odpsstg.aliyun-inc.com",
+                        "accountType": "aliyun"
+                    }
+                },
+                "writer": {
+                    "name": "hbasebulkwriter2",
+                    "parameter": {
+                        "origin": {
+                            "hbaseTable": "test_hbase_table",
+                            "hbaseRowkey": "0|string",
+                            "hbaseColumn": "1|string|cf:name,2|int|cf:age,3|string|cf:birthday",
+                            "hbaseOutput": "test_hbase_output",
+                            "hbaseConfig": "test_hbase_config",
+                            "hbaseClusterName":"test_hbase_cluster_name",
+                            "hdfsConfig": "test_hdfs_config",
+                            "nullMode": "EMPTY_BYTES",
+                            "timeCol":2,
+                            "encoding":"utf-8"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
