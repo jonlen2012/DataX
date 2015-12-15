@@ -1,0 +1,87 @@
+{
+  "job": {
+    "setting": {
+      "speed": {
+        "byte": 10485760
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "odpsreader",
+          "parameter": {
+            "column": [
+		        "uuid",            
+		        "request_time",    
+		        "host",            
+		        "uri",             
+		        "src_ip",          
+		        "src_port",        
+		        "dst_ip",          
+		        "dst_port",        
+		        "method",          
+		        "referer",         
+		        "user_agent",      
+		        "x_forward_for",     
+		        "post_data",       
+		        "ret_code",        
+		        "rsp_content_type",
+		        "rqs_content_type",
+		        "content_length",  
+		        "jump_location",     
+		        "region",      
+		        "attack_type",   
+		        "ds"
+            ],
+            "accessId": "HhRPVybzO1yz7nbd",
+            "accessKey": "vLNrfVu1p7ZDuTVkyZ7F4e0CrVKIP4",
+            "partition": [
+              "ds=20151210"
+            ],
+            "odpsServer": "http://service-corp.odps.aliyun-inc.com/api",
+            "project": "secbase_dev",
+            "table": "adl_gaia_anomaly_data_index_fdt",
+            "tunnelServer": "http://dt-corp.odps.aliyun-inc.com"
+          }
+        },
+        "writer": {
+          "name": "hbasewriter",
+          "parameter": {
+            "zips": "10.125.62.94",
+            "zport": "2181",
+            "table": "secbase_anomaly",
+            "colf": "cf",
+            "columns": [
+		        "uuid",            
+		        "request_time",    
+		        "host",            
+		        "uri",             
+		        "src_ip",          
+		        "src_port",        
+		        "dst_ip",          
+		        "dst_port",        
+		        "method",          
+		        "referer",         
+		        "user_agent",      
+		        "x_forward_for",     
+		        "post_data",       
+		        "ret_code",        
+		        "rsp_content_type",
+		        "rqs_content_type",
+		        "content_length",  
+		        "jump_location",     
+		        "region",      
+		        "attack_type",   
+		        "ds"
+            ],
+            "batchrows": "100"
+          }
+        }
+      }
+    ]
+  }
+}
