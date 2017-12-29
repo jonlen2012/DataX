@@ -1,206 +1,89 @@
 package com.alibaba.datax.plugin.reader.mongodbreader.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.alibaba.datax.common.exception.DataXException;
 import com.alibaba.datax.common.util.Configuration;
 import com.alibaba.datax.plugin.reader.mongodbreader.KeyConstant;
 import com.alibaba.datax.plugin.reader.mongodbreader.MongoDBReaderErrorCode;
-
 import com.google.common.base.Strings;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCommandException;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
+import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.bson.BsonDocument;
 
-/**
- * Created by jianying.wcj on 2015/3/19 0019.
- * Modified by mingyan.zc on 2016/6/13.
- * Modified by mingyan.zc on 2017/7/5.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class CollectionSplitUtil {
 
     public static List<Configuration> doSplit(
-        Configuration originalSliceConfig, int adviceNumber, MongoClient mongoClient) {
+            Configuration originalSliceConfig,int adviceNumber,MongoClient mongoClient) {
 
         List<Configuration> confList = new ArrayList<Configuration>();
 
-        String dbName = originalSliceConfig.getString(KeyConstant.MONGO_DB_NAME, originalSliceConfig.getString(KeyConstant.MONGO_DATABASE));
+        String dbName = originalSliceConfig.getString(KeyConstant.MONGO_DB_NAME);
 
-        String collName = originalSliceConfig.getString(KeyConstant.MONGO_COLLECTION_NAME);
+        String collectionName = originalSliceConfig.getString(KeyConstant.MONGO_COLLECTION_NAME);
 
-        if(Strings.isNullOrEmpty(dbName) || Strings.isNullOrEmpty(collName) || mongoClient == null) {
+        if(Strings.isNullOrEmpty(dbName) || Strings.isNullOrEmpty(collectionName) || mongoClient == null) {
             throw DataXException.asDataXException(MongoDBReaderErrorCode.ILLEGAL_VALUE,
-                MongoDBReaderErrorCode.ILLEGAL_VALUE.getDescription());
+                    MongoDBReaderErrorCode.ILLEGAL_VALUE.getDescription());
         }
 
-        boolean isObjectId = isPrimaryIdObjectId(mongoClient, dbName, collName);
+        String query = originalSliceConfig.getString(KeyConstant.MONGO_QUERY);
 
-        List<Range> rangeList = doSplitCollection(adviceNumber, mongoClient, dbName, collName, isObjectId);
-        for(Range range : rangeList) {
+        MongoDatabase db = mongoClient.getDatabase(dbName);
+        MongoCollection collection = db.getCollection(collectionName);
+
+        List<Entry> countInterval = doSplitInterval(adviceNumber, collection, query);
+        for(Entry interval : countInterval) {
             Configuration conf = originalSliceConfig.clone();
-            conf.set(KeyConstant.LOWER_BOUND, range.lowerBound);
-            conf.set(KeyConstant.UPPER_BOUND, range.upperBound);
-            conf.set(KeyConstant.IS_OBJECTID, isObjectId);
+            conf.set(KeyConstant.SKIP_COUNT,interval.interval);
+            conf.set(KeyConstant.BATCH_SIZE,interval.batchSize);
             confList.add(conf);
         }
         return confList;
     }
 
+    private static List<Entry> doSplitInterval(int adviceNumber, MongoCollection collection, String query) {
 
-    private static boolean isPrimaryIdObjectId(MongoClient mongoClient, String dbName, String collName) {
-        MongoDatabase database = mongoClient.getDatabase(dbName);
-        MongoCollection<Document> col = database.getCollection(collName);
-        Document doc = col.find().limit(1).first();
-        Object id = doc.get(KeyConstant.MONGO_PRIMARY_ID);
-        if (id instanceof ObjectId) {
-            return true;
-        }
-        return false;
-    }
+        List<Entry> intervalCountList = new ArrayList<Entry>();
 
-    // split the collection into multiple chunks, each chunk specifies a range
-    private static List<Range> doSplitCollection(int adviceNumber, MongoClient mongoClient,
-                                                 String dbName, String collName, boolean isObjectId) {
-
-        MongoDatabase database = mongoClient.getDatabase(dbName);
-        List<Range> rangeList = new ArrayList<Range>();
-        if (adviceNumber == 1) {
-            Range range = new Range();
-            range.lowerBound = "min";
-            range.upperBound = "max";
-            return Arrays.asList(range);
-        }
-
-        Document result = database.runCommand(new Document("collStats", collName));
-        int docCount = result.getInteger("count");
-        if (docCount == 0) {
-            return rangeList;
-        }
-        int avgObjSize = 1;
-        Object avgObjSizeObj = result.get("avgObjSize");
-        if (avgObjSizeObj instanceof Integer) {
-            avgObjSize = ((Integer) avgObjSizeObj).intValue();
-        } else if (avgObjSizeObj instanceof Double) {
-            avgObjSize = ((Double) avgObjSizeObj).intValue();
-        }
-        int splitPointCount = adviceNumber - 1;
-        int chunkDocCount = docCount / adviceNumber;
-        ArrayList<Object> splitPoints = new ArrayList<Object>();
-
-        // test if user has splitVector role(clusterManager)
-        boolean supportSplitVector = true;
-        try {
-            database.runCommand(new Document("splitVector", dbName + "." + collName)
-                .append("keyPattern", new Document(KeyConstant.MONGO_PRIMARY_ID, 1))
-                .append("force", true));
-        } catch (MongoCommandException e) {
-            if (e.getErrorCode() == KeyConstant.MONGO_UNAUTHORIZED_ERR_CODE ||
-                e.getErrorCode() == KeyConstant.MONGO_ILLEGALOP_ERR_CODE) {
-                supportSplitVector = false;
-            }
-        }
-
-        if (supportSplitVector) {
-            boolean forceMedianSplit = false;
-            int maxChunkSize = (docCount / splitPointCount - 1) * 2 * avgObjSize / (1024 * 1024);
-            //int maxChunkSize = (chunkDocCount - 1) * 2 * avgObjSize / (1024 * 1024);
-            if (maxChunkSize < 1) {
-                forceMedianSplit = true;
-            }
-            if (!forceMedianSplit) {
-                result = database.runCommand(new Document("splitVector", dbName + "." + collName)
-                    .append("keyPattern", new Document(KeyConstant.MONGO_PRIMARY_ID, 1))
-                    .append("maxChunkSize", maxChunkSize)
-                    .append("maxSplitPoints", adviceNumber - 1));
-            } else {
-                result = database.runCommand(new Document("splitVector", dbName + "." + collName)
-                    .append("keyPattern", new Document(KeyConstant.MONGO_PRIMARY_ID, 1))
-                    .append("force", true));
-            }
-            ArrayList<Document> splitKeys = result.get("splitKeys", ArrayList.class);
-
-            for (int i = 0; i < splitKeys.size(); i++) {
-                Document splitKey = splitKeys.get(i);
-                Object id = splitKey.get(KeyConstant.MONGO_PRIMARY_ID);
-                if (isObjectId) {
-                    ObjectId oid = (ObjectId)id;
-                    splitPoints.add(oid.toHexString());
-                } else {
-                    splitPoints.add(id);
-                }
-            }
+        long totalCount = 0;
+        if (!Strings.isNullOrEmpty(query)) {
+            String queryString[] = query.split("=");
+            //String q = "{"+queryString[0]+":{$gte:ISODate('"+queryString[1]+"')}}";//"{" + queryString[0] + ":{$gte:ISODate('" + queryString[1] + "')}}";
+            String q = "{"+queryString[0]+":{$gt:ISODate('"+queryString[1]+"'),$lte:ISODate('"+queryString[2]+"')}}";
+            System.out.println("-----count sql==="+BsonDocument.parse(q));
+            totalCount = collection.count(BsonDocument.parse(q));
+            System.out.println("-----totalCount==="+totalCount);
         } else {
-            int skipCount = chunkDocCount;
-            MongoCollection<Document> col = database.getCollection(collName);
-
-            for (int i = 0; i < splitPointCount; i++) {
-                Document doc = col.find().skip(skipCount).limit(chunkDocCount).first();
-                Object id = doc.get(KeyConstant.MONGO_PRIMARY_ID);
-                if (isObjectId) {
-                    ObjectId oid = (ObjectId)id;
-                    splitPoints.add(oid.toHexString());
-                } else {
-                    splitPoints.add(id);
-                }
-                skipCount += chunkDocCount;
-            }
+            totalCount = collection.count();
         }
-
-        Object lastObjectId = "min";
-        for (Object splitPoint : splitPoints) {
-            Range range = new Range();
-            range.lowerBound = lastObjectId;
-            lastObjectId = splitPoint;
-            range.upperBound = lastObjectId;
-            rangeList.add(range);
+        if(totalCount < 0) {
+            return intervalCountList;
         }
-        Range range = new Range();
-        range.lowerBound = lastObjectId;
-        range.upperBound = "max";
-        rangeList.add(range);
-
-        return rangeList;
-    }
-
-    public static void main(String[] args) {
-        ServerAddress sa = new ServerAddress("10.101.72.137", 3002);
-        MongoCredential credential = MongoCredential.createCredential("root", "test", "Qa123456".toCharArray());
-        MongoClient mongoClient = new MongoClient(sa, Arrays.asList(credential));
-        String dbName = "test";
-        String collName = "test4";
-        boolean isObjectId = isPrimaryIdObjectId(mongoClient, dbName, collName);
-        List<Range> rangeList = doSplitCollection(2, mongoClient, dbName, collName, isObjectId);
-        //String query = "{_id: {\"$oid\" :\"595c903c03e6b9f551b6a80e\"}}";
-        for(Range range : rangeList) {
-            System.out.printf("range.lowerBound: %s, upperBound: %s\n", range.lowerBound, range.upperBound);
-            Document filter = new Document();
-            if (range.lowerBound == "min") {
-                if (range.upperBound != "max") {
-                    filter.append("_id", new Document("$lt", isObjectId ? new ObjectId(range.upperBound.toString()) : range.upperBound));
-                }
-            } else if (range.upperBound == "max") {
-                filter.append(KeyConstant.MONGO_PRIMARY_ID, new Document("$gte", isObjectId ? new ObjectId(range.lowerBound.toString()) : range.lowerBound));
+        // 100 6 => 16 mod 4
+        long batchSize = totalCount/adviceNumber;
+        for(int i = 0; i < adviceNumber; i++) {
+            Entry entry = new Entry();
+            /**
+             * 这个判断确认不会丢失最后一页数据，
+             * 因为 totalCount/adviceNumber 不整除时，如果不做判断会丢失最后一页
+             */
+            if(i == (adviceNumber - 1)) {
+                entry.batchSize = batchSize + adviceNumber;
             } else {
-                filter.append(KeyConstant.MONGO_PRIMARY_ID, new Document("$gte", isObjectId ? new ObjectId(range.lowerBound.toString()) : range.lowerBound).append("$lt", isObjectId ? new ObjectId(range.upperBound.toString()) : range.upperBound));
+                entry.batchSize = batchSize;
             }
-            //Document queryFilter = Document.parse(query);
-            //filter = new Document("$and", Arrays.asList(filter, queryFilter));
-            //System.out.println(filter);
-            MongoDatabase database = mongoClient.getDatabase(dbName);
-            MongoCollection col = database.getCollection(collName);
-            System.out.println(col.count(filter));
+            entry.interval = batchSize * i;
+            intervalCountList.add(entry);
         }
+        return intervalCountList;
     }
+
 }
 
-class Range {
-    Object lowerBound;
-    Object upperBound;
+class Entry {
+    Long interval;
+    Long batchSize;
 }
